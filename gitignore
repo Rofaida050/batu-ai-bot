@@ -1,0 +1,7 @@
+.env
+batu.db
+faq_cache.json
+rate_log.json
+*.tmp
+config.json
+custom_data.json
