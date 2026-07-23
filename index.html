@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>BATU AI BOOT</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+:root {
+  --navy:#0a1628; --blue:#1a3a6b; --accent:#2563eb; --accent2:#1d4ed8;
+  --gold:#f59e0b; --light:#e8f0fe; --bg:#f0f4ff; --white:#fff;
+  --gray:#64748b; --border:#dbeafe;
+  --success:#10b981; --danger:#ef4444;
+  --card-r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--bg);overflow:hidden}
+
+/* ── Shell: mobile full-screen, desktop centered card ── */
+.shell{
+  display:flex;flex-direction:column;
+  height:100vh;width:100vw;background:var(--white);
+  max-width:520px;margin:0 auto;
+}
+@media(min-width:769px){
+  body{display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px}
+  .shell{height:min(860px,95vh);border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(10,22,40,.18)}
+}
+
+/* ── Top bar ── */
+.topbar{background:linear-gradient(135deg,var(--navy),var(--blue));flex-shrink:0}
+.topbar-main{display:flex;align-items:center;gap:11px;padding:13px 16px}
+.logo-box{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.logo-txt h1{color:#fff;font-size:14px;font-weight:900;line-height:1.2}
+.logo-txt p{color:rgba(255,255,255,.6);font-size:10px;margin-top:1px}
+.topbar-right{margin-right:auto;display:flex;align-items:center;gap:7px}
+.online{display:flex;align-items:center;gap:4px;color:rgba(255,255,255,.75);font-size:10.5px}
+.dot{width:7px;height:7px;background:#34d399;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+.iBtn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:5px 9px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif;transition:.2s;white-space:nowrap}
+.iBtn:hover{background:rgba(255,255,255,.22)}
+
+/* User badge in topbar */
+.user-badge{display:flex;align-items:center;gap:5px;background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.4);border-radius:20px;padding:3px 10px;color:#fde68a;font-size:10.5px;font-weight:700;cursor:pointer}
+.user-badge:hover{background:rgba(245,158,11,.3)}
+
+/* ── View tabs (only shown when admin logged in) ── */
+.view-tabs{display:flex;padding:0 16px;gap:3px;border-top:1px solid rgba(255,255,255,.08)}
+.vtab{flex:1;padding:8px 4px;border:none;background:transparent;color:rgba(255,255,255,.5);font-family:'Cairo',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;text-align:center}
+.vtab.on{color:#fff;border-bottom-color:var(--gold)}
+
+/* ── Pages ── */
+.page{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+.page.on{display:flex}
+
+/* ─────────────── CHAT PAGE ─────────────── */
+.chips{padding:8px 12px;display:flex;gap:6px;overflow-x:auto;background:var(--light);border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;flex-shrink:0}
+.chips::-webkit-scrollbar{display:none}
+.chip{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-family:'Cairo',sans-serif;cursor:pointer;color:var(--blue);font-weight:700;transition:.2s;white-space:nowrap;flex-shrink:0}
+.chip:hover,.chip:active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.msgs-wrap{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:11px;scroll-behavior:smooth;background:#f8faff;min-height:0}
+.msgs-wrap::-webkit-scrollbar{width:4px}
+.msgs-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+.msg{display:flex;gap:8px;align-items:flex-start;animation:up .25s ease}
+.msg.u{flex-direction:row-reverse}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.av{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.msg.b .av{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff}
+.msg.u .av{background:linear-gradient(135deg,var(--accent),#60a5fa);color:#fff}
+.bbl{max-width:85%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.75;word-break:break-word}
+.msg.b .bbl{background:var(--light);color:var(--navy);border-top-right-radius:4px;border:1px solid var(--border)}
+.msg.u .bbl{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-top-left-radius:4px}
+.msg.b .bbl h1,.msg.b .bbl h2,.msg.b .bbl h3{color:var(--blue);margin:7px 0 4px;border-right:3px solid var(--accent);padding-right:6px;font-size:13px}
+.msg.b .bbl ul,.msg.b .bbl ol{padding-right:15px;margin:4px 0}
+.msg.b .bbl li{margin-bottom:3px}
+.msg.b .bbl strong{color:#c2410c}
+.msg.b .bbl p{margin-bottom:4px}
+.msg.b .bbl a{color:var(--accent)!important;text-decoration:underline!important;font-weight:700!important;word-break:break-all}
+.cache-badge{display:inline-flex;align-items:center;gap:3px;background:#d1fae5;color:#059669;border-radius:5px;padding:1px 7px;font-size:10px;font-weight:700;margin-bottom:4px}
+
+.typing{display:flex;gap:4px;padding:3px 0}
+.typing span{width:7px;height:7px;background:var(--gray);border-radius:50%;animation:bnc 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bnc{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1);opacity:1}}
+
+.input-bar{padding:10px 13px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--white);flex-shrink:0}
+.msg-input{flex:1;border:2px solid var(--border);border-radius:11px;padding:9px 13px;font-family:'Cairo',sans-serif;font-size:13px;color:var(--navy);outline:none;background:var(--bg);transition:.2s;min-width:0}
+.msg-input:focus{border-color:var(--accent);background:var(--white)}
+.msg-input::placeholder{color:var(--gray)}
+.send{width:40px;height:40px;background:var(--accent);border:none;border-radius:11px;cursor:pointer;font-size:16px;color:#fff;transition:.2s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.send:hover{background:var(--accent2)}.send:disabled{background:var(--gray);cursor:not-allowed}
+
+/* ─────────────── ADMIN PAGES ─────────────── */
+.admin-page{flex:1;overflow-y:auto;padding:14px;min-height:0}
+.admin-page::-webkit-scrollbar{width:4px}
+.admin-page::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+.dash-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+@media(min-width:420px){.dash-stats{grid-template-columns:repeat(4,1fr)}}
+.ds{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:11px;text-align:center}
+.ds .dn{font-size:20px;font-weight:900;color:var(--accent)}
+.ds .dl{font-size:9.5px;color:var(--gray);margin-top:3px}
+
+.sec-title{font-size:12.5px;font-weight:700;color:var(--navy);margin:14px 0 9px;padding-bottom:7px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:6px}
+
+.tbl-wrap{border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:14px;overflow-x:auto}
+.dtbl{width:100%;border-collapse:collapse;font-size:11.5px;min-width:460px}
+.dtbl th{background:var(--navy);color:#fff;padding:8px 10px;text-align:right;font-weight:600}
+.dtbl td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--navy);vertical-align:top}
+.dtbl tr:hover td{background:var(--light)}
+
+.search-bar{display:flex;gap:7px;margin-bottom:11px;flex-wrap:wrap}
+.search-bar input,.search-bar select{border:2px solid var(--border);border-radius:8px;padding:7px 11px;font-family:'Cairo',sans-serif;font-size:12px;outline:none;background:var(--white);flex:1;min-width:90px;transition:.2s}
+.search-bar input:focus,.search-bar select:focus{border-color:var(--accent)}
+
+.add-box{background:var(--bg);border:2px dashed var(--border);border-radius:10px;padding:13px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+@media(max-width:420px){.frow{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:11px;font-weight:700;color:var(--navy)}
+.fg input,.fg select,.fg textarea{border:2px solid var(--border);border-radius:7px;padding:7px 10px;font-family:'Cairo',sans-serif;font-size:12px;outline:none;background:var(--white);transition:.2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent)}
+.fg textarea{resize:vertical;min-height:65px}
+.fg small{color:var(--gray);font-size:9.5px}
+
+.info-card{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:11px;font-size:11.5px;line-height:2;color:var(--navy)}
+.cp-box{background:#ede9fe;border:1px solid #c4b5fd;border-radius:9px;padding:13px}
+.cp-box h4{color:#5b21b6;font-size:12.5px;font-weight:700;margin-bottom:9px}
+
+/* ─────────────── MODALS ─────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:14px}
+.modal-bg.show{display:flex}
+.modal{background:var(--white);border-radius:14px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-hdr{background:linear-gradient(135deg,var(--navy),var(--blue));padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-radius:14px 14px 0 0;position:sticky;top:0;z-index:1}
+.modal-hdr h3{color:#fff;font-size:13.5px;font-weight:900}
+.modal-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:15px;cursor:pointer;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:16px}
+.mfrow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+@media(max-width:380px){.mfrow{grid-template-columns:1fr}}
+.mfg{display:flex;flex-direction:column;gap:3px}
+.mfg.full{grid-column:1/-1}
+.mfg label{font-size:11px;font-weight:700;color:var(--navy)}
+.mfg input,.mfg select,.mfg textarea{border:2px solid var(--border);border-radius:7px;padding:7px 10px;font-family:'Cairo',sans-serif;font-size:12px;outline:none;background:var(--white);transition:.2s;width:100%}
+.mfg input:focus,.mfg select:focus,.mfg textarea:focus{border-color:var(--accent)}
+.mfg textarea{resize:vertical;min-height:55px}
+.modal-footer{padding:12px 16px 16px;display:flex;gap:7px;justify-content:flex-end;border-top:1px solid var(--border)}
+
+/* ─────────────── REGISTER CARD ─────────────── */
+/* Shown at bottom of chat — optional for users */
+.reg-banner{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #f59e0b;border-radius:12px;padding:13px 15px;margin:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.reg-banner .reg-ico{font-size:22px;flex-shrink:0}
+.reg-banner .reg-txt{flex:1}
+.reg-banner .reg-txt p{font-size:12px;color:#92400e;font-weight:700;margin-bottom:3px}
+.reg-banner .reg-txt span{font-size:11px;color:#b45309}
+.reg-banner .reg-btn{background:var(--gold);border:none;border-radius:8px;padding:7px 13px;font-family:'Cairo',sans-serif;font-size:11.5px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap;transition:.2s;flex-shrink:0}
+.reg-banner .reg-btn:hover{background:#d97706}
+.reg-banner .reg-dismiss{background:transparent;border:none;color:#b45309;cursor:pointer;font-size:14px;flex-shrink:0;padding:2px}
+
+/* Registered user card */
+.user-card{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px solid #93c5fd;border-radius:12px;padding:11px 14px;margin:0 14px 10px;display:flex;align-items:center;gap:9px;flex-shrink:0}
+.user-card .uc-av{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.user-card .uc-txt p{font-size:13px;font-weight:900;color:var(--navy)}
+.user-card .uc-txt span{font-size:10.5px;color:var(--gray)}
+.user-card .uc-out{margin-right:auto;background:transparent;border:1.5px solid var(--border);border-radius:7px;padding:4px 10px;font-family:'Cairo',sans-serif;font-size:11px;color:var(--gray);cursor:pointer;transition:.2s}
+.user-card .uc-out:hover{border-color:var(--danger);color:var(--danger)}
+
+/* ─────────────── HISTORY DRAWER ─────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none}
+.overlay.show{display:block}
+.drawer{position:fixed;top:0;right:-105%;width:min(340px,94vw);height:100vh;background:var(--white);box-shadow:-4px 0 24px rgba(0,0,0,.15);z-index:101;transition:right .3s ease;display:flex;flex-direction:column}
+.drawer.open{right:0}
+.drawer-hdr{background:linear-gradient(135deg,var(--navy),var(--blue));padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-hdr h3{color:#fff;font-size:13.5px;font-weight:900}
+.drawer-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:15px;cursor:pointer;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.drawer-body{flex:1;overflow-y:auto;padding:12px}
+.drawer-body::-webkit-scrollbar{width:4px}
+.drawer-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.hist-msg{padding:9px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px;cursor:pointer;transition:.2s}
+.hist-msg:hover{background:var(--light);border-color:var(--accent)}
+.hist-msg .hr{font-size:10px;font-weight:700;margin-bottom:3px}
+.hist-msg .hr.u{color:var(--accent)}.hist-msg .hr.b{color:var(--navy)}
+.hist-msg .hc{font-size:11.5px;color:var(--navy);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hist-msg .ht{font-size:9.5px;color:var(--gray);margin-top:3px}
+
+/* ─────────────── SHARED ─────────────── */
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;transition:.2s;display:inline-flex;align-items:center;gap:5px}
+.btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:var(--accent2)}
+.btn-d{background:#fee2e2;color:var(--danger)}.btn-d:hover{background:var(--danger);color:#fff}
+.btn-g{background:var(--bg);border:2px solid var(--border);color:var(--navy)}.btn-g:hover{border-color:var(--accent);color:var(--accent)}
+.btn-s{background:#d1fae5;color:#059669}.btn-s:hover{background:#059669;color:#fff}
+.bsm{padding:3px 9px;font-size:10.5px;border-radius:6px}
+.bdg{display:inline-block;padding:2px 8px;border-radius:11px;font-size:10px;font-weight:700}
+.bg{background:#dbeafe;color:#1d4ed8}.gg{background:#d1fae5;color:#059669}
+.yg{background:#fef3c7;color:#d97706}.pg{background:#ede9fe;color:#6d28d9}.rg{background:#fee2e2;color:#b91c1c}
+.sb-act{background:#d1fae5;color:#059669}.sb-ina{background:#fee2e2;color:#b91c1c}
+.sb-grd{background:#dbeafe;color:#1d4ed8}.sb-sus{background:#fef3c7;color:#d97706}
+.empty-r td{text-align:center;color:var(--gray);padding:18px}
+.pinp{border:2px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Cairo',sans-serif;font-size:12.5px;outline:none;background:var(--bg);transition:.2s;flex:1}
+.pinp:focus{border-color:var(--accent)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--success);color:#fff;padding:10px 22px;border-radius:11px;font-size:12px;font-weight:700;transition:.3s;z-index:9999;box-shadow:0 6px 20px rgba(16,185,129,.35);font-family:'Cairo',sans-serif;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="shell"><!-- ══════════ TOP BAR ══════════ -->
+<div class="topbar">
+<div class="topbar-main">
+<div class="logo-box">🎓</div>
+<div class="logo-txt">
+<h1>BATU AI BOT</h1>
+<p>المساعد الذكي — جامعة برج العرب التكنولوجية</p>
+</div>
+<div class="topbar-right"><!-- Shows student name after registration -->
+<div id="topUserBadge" style="display: none;" class="user-badge" onclick="openDrawer()"><span>👤</span><span id="topUserName"></span></div>
+<button class="iBtn" onclick="openDrawer()" title="سجل المحادثة">📜</button> <!-- Admin login button — unobtrusive --> <button class="iBtn" id="adminBtn" onclick="showAdminLogin()" title="لوحة التحكم" style="opacity: .5; font-size: 10px;">⚙️</button>
+<div class="online">
+<div class="dot"></div>
+</div>
+</div>
+</div>
+<!-- Admin tabs — hidden until admin logged in -->
+<div class="view-tabs" id="viewTabs" style="display: none;"><button class="vtab on" onclick="goPage('chat')">💬 المساعد</button> <button class="vtab" onclick="goPage('students')">👥 الطلاب</button> <button class="vtab" onclick="goPage('knowledge')">📚 المعرفة</button> <button class="vtab" onclick="goPage('security')">🔑 الأمان</button></div>
+</div>
+<!-- ══════════ CHAT PAGE ══════════ -->
+<div id="page-chat" class="page on"><!-- Registration banner — shown to guests -->
+<div class="reg-banner" id="regBanner">
+<div class="reg-ico">🎓</div>
+<div class="reg-txt">
+<p>سجّل بياناتك للحصول على تجربة مخصصة</p>
+<span>الاسم ورقمك القومي فقط — اختياري تماماً</span></div>
+<button class="reg-btn" onclick="openRegModal()">تسجيل</button> <button class="reg-dismiss" onclick="dismissReg()" title="إغلاق">✕</button></div>
+<!-- Registered user card -->
+<div class="user-card" id="userCard" style="display: none;">
+<div class="uc-av">👤</div>
+<div class="uc-txt">
+<p id="ucName">—</p>
+<span>طالب مسجّل ✅</span></div>
+<button class="uc-out" onclick="logout()">تسجيل خروج</button></div>
+<div class="chips"><button class="chip" onclick="q('ما هي الكليات المتاحة؟')">🏛️ الكليات</button> <button class="chip" onclick="q('ما هي التخصصات؟')">📚 التخصصات</button> <button class="chip" onclick="q('شروط القبول والتسجيل')">📋 القبول</button> <button class="chip" onclick="q('كم المصروفات؟')">💰 المصاريف</button> <button class="chip" onclick="q('كيف أتواصل مع الجامعة؟')">📞 تواصل</button> <button class="chip" onclick="q('الأنشطة الطلابية')">⚽ الأنشطة</button> <button class="chip" onclick="q('نظام الدراسة والدبلوم')">🎓 نظام الدراسة</button></div>
+<div class="msgs-wrap" id="msgs"></div>
+<div class="input-bar"><input class="msg-input" id="inp" placeholder="اكتب أي شيء..." onkeydown="if(event.key==='Enter'&amp;&amp;!event.shiftKey)send()" type="text" /> <button class="send" id="sendBtn" onclick="send()">➤</button></div>
+</div>
+<!-- ══════════ STUDENTS PAGE (admin only) ══════════ -->
+<div id="page-students" class="page">
+<div class="admin-page">
+<div class="dash-stats">
+<div class="ds">
+<div class="dn" id="dTotal">—</div>
+<div class="dl">إجمالي الطلاب</div>
+</div>
+<div class="ds">
+<div class="dn" id="dActive">—</div>
+<div class="dl">نشطون</div>
+</div>
+<div class="ds">
+<div class="dn" id="dGPA">—</div>
+<div class="dl">متوسط GPA</div>
+</div>
+<div class="ds">
+<div class="dn" id="dFacs">—</div>
+<div class="dl">الكليات</div>
+</div>
+</div>
+<div class="search-bar"><input id="stuSearch" placeholder="🔍 بحث..." oninput="loadStu()" type="text" /><select id="stuFac" onchange="loadStu()">
+<option value="">كل الكليات</option>
+<option value="كلية الصناعة والطاقة">الصناعة والطاقة</option>
+<option value="كلية العلوم الصحية التطبيقية">العلوم الصحية</option>
+</select><select id="stuYear" onchange="loadStu()">
+<option value="">كل الفرق</option>
+<option value="1">الأولى</option>
+<option value="2">الثانية</option>
+<option value="3">الثالثة</option>
+<option value="4">الرابعة</option>
+</select><button class="btn btn-p bsm" onclick="openAddStu()">➕ إضافة</button></div>
+<div class="tbl-wrap">
+<table class="dtbl">
+<thead>
+<tr>
+<th>#</th>
+<th>الاسم</th>
+<th>الرقم القومي</th>
+<th>الكلية</th>
+<th>الفرقة</th>
+<th>GPA</th>
+<th>الحالة</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="stuBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- ══════════ KNOWLEDGE PAGE (admin only) ══════════ -->
+<div id="page-knowledge" class="page">
+<div class="admin-page">
+<div class="sec-title">📋 المعلومات المضافة يدوياً</div>
+<div class="tbl-wrap">
+<table class="dtbl">
+<thead>
+<tr>
+<th>#</th>
+<th>الفئة</th>
+<th>الكلمات</th>
+<th>المحتوى</th>
+<th>التاريخ</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="kbBody"></tbody>
+</table>
+</div>
+<div class="sec-title">➕ إضافة معلومة</div>
+<div class="add-box">
+<div class="frow">
+<div class="fg"><label>الفئة</label><select id="kbCat">
+<option value="general">عام</option>
+<option value="faculty">كلية</option>
+<option value="program">برنامج</option>
+<option value="admission">قبول</option>
+<option value="fees">رسوم</option>
+<option value="contact">تواصل</option>
+<option value="activity">نشاط</option>
+<option value="staff">كادر</option>
+<option value="news">أخبار</option>
+</select></div>
+<div class="fg"><label>الكلمات المفتاحية</label> <input id="kbKw" placeholder="قبول, تسجيل, شروط" type="text" /> <small>افصل بفاصلة</small></div>
+</div>
+<div class="frow">
+<div class="fg full"><label>المحتوى</label><textarea id="kbContent" placeholder="اكتب المعلومة..."></textarea></div>
+</div>
+<button class="btn btn-p" onclick="kbAdd()">➕ إضافة</button></div>
+</div>
+</div>
+<!-- ══════════ SECURITY PAGE (admin only) ══════════ -->
+<div id="page-security" class="page">
+<div class="admin-page">
+<div class="sec-title">🔑 تغيير كلمة المرور</div>
+<div class="cp-box">
+<h4>كلمة مرور جديدة</h4>
+<div class="mfrow" style="margin-bottom: 10px;">
+<div class="mfg"><label>كلمة المرور الجديدة</label><input type="password" id="np1" placeholder="6 أحرف+" /></div>
+<div class="mfg"><label>تأكيد</label><input type="password" id="np2" placeholder="أعد الكتابة" /></div>
+</div>
+<button class="btn btn-p" onclick="changePass()">🔑 تغيير</button></div>
+</div>
+</div>
+</div>
+<!-- /shell -->
+<p></p>
+<!-- ── History Drawer ── -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+<div class="drawer-hdr">
+<h3>📜 سجل المحادثة</h3>
+<button class="drawer-close" onclick="closeDrawer()">✕</button></div>
+<div class="drawer-body" id="drawerBody">
+<p style="text-align: center; color: var(--gray); padding: 30px 0;">جاري التحميل...</p>
+</div>
+</div>
+<!-- ── Student Registration Modal ── -->
+<div class="modal-bg" id="regModal">
+<div class="modal">
+<div class="modal-hdr">
+<h3>🎓 تسجيل طالب — اختياري</h3>
+<button class="modal-close" onclick="closeRegModal()">✕</button></div>
+<div class="modal-body">
+<p style="font-size: 12px; color: var(--gray); margin-bottom: 14px; line-height: 1.6;">سجّل اسمك ورقمك القومي فقط — هذا اختياري تماماً. يتيح لك الاستمرار في المحادثة بشكل مخصص، وتُحفظ بياناتك بشكل آمن.</p>
+<div class="mfrow">
+<div class="mfg full"><label>الاسم الكامل *</label><input id="regName" placeholder="اسمك رباعياً" type="text" /></div>
+</div>
+<div class="mfrow">
+<div class="mfg full"><label>الرقم القومي *</label><input id="regNid" placeholder="14 رقم" maxlength="14" type="tel" /></div>
+</div>
+<p id="regErr" style="color: var(--danger); font-size: 11.5px; display: none; margin-top: 6px;"></p>
+</div>
+<div class="modal-footer"><button class="btn btn-g" onclick="closeRegModal()">تخطّي</button> <button class="btn btn-p" onclick="doRegister()">تسجيل ✅</button></div>
+</div>
+</div>
+<!-- ── Admin Login Modal ── -->
+<div class="modal-bg" id="adminLoginModal">
+<div class="modal" style="max-width: 320px;">
+<div class="modal-hdr">
+<h3>⚙️ لوحة التحكم</h3>
+<button class="modal-close" onclick="closeAdminLogin()">✕</button></div>
+<div class="modal-body" style="text-align: center; padding: 24px 20px;">
+<div style="font-size: 36px; margin-bottom: 10px;">🔐</div>
+<p style="color: var(--gray); font-size: 12px; margin-bottom: 14px;">للمشرف فقط — أدخل كلمة المرور</p>
+<div style="display: flex; gap: 7px;"><input type="password" class="pinp" id="adminPw" placeholder="كلمة المرور..." onkeydown="if(event.key==='Enter')doAdminLogin()" /> <button class="btn btn-p" onclick="doAdminLogin()">دخول</button></div>
+<p id="adminErr" style="color: var(--danger); font-size: 11px; margin-top: 8px; display: none;">❌ كلمة مرور خاطئة</p>
+</div>
+</div>
+</div>
+<!-- ── Student Edit Modal ── -->
+<div class="modal-bg" id="stuModal">
+<div class="modal">
+<div class="modal-hdr">
+<h3 id="stuModalTitle">➕ إضافة طالب</h3>
+<button class="modal-close" onclick="closeStuModal()">✕</button></div>
+<div class="modal-body"><input type="hidden" id="stuId" />
+<div class="mfrow">
+<div class="mfg full"><label>الاسم الكامل *</label><input id="sName" placeholder="اسم الطالب رباعياً" type="text" /></div>
+</div>
+<div class="mfrow">
+<div class="mfg"><label>الرقم القومي *</label><input id="sNid" placeholder="14 رقم" type="text" /></div>
+<div class="mfg"><label>الهاتف</label><input id="sPhone" placeholder="01xxxxxxxxx" type="text" /></div>
+</div>
+<div class="mfrow">
+<div class="mfg"><label>الكلية</label><select id="sFac">
+<option value="كلية الصناعة والطاقة">الصناعة والطاقة</option>
+<option value="كلية العلوم الصحية التطبيقية">العلوم الصحية</option>
+</select></div>
+<div class="mfg"><label>البرنامج</label><select id="sProg">
+<option>تكنولوجيا السكك الحديدية</option>
+<option>تكنولوجيا المعلومات</option>
+<option>الغزل والنسيج</option>
+<option>صناعة الغذاء</option>
+<option>الجرارات والمعدات الزراعية</option>
+<option>مختبر الأسنان</option>
+<option>الإنتاج الصيدلاني</option>
+<option>إدارة المعلومات الصحية</option>
+<option>الرعاية الصحية</option>
+<option>العلوم الأساسية</option>
+</select></div>
+</div>
+<div class="mfrow">
+<div class="mfg"><label>الفرقة</label><select id="sYear">
+<option value="1">الأولى</option>
+<option value="2">الثانية</option>
+<option value="3">الثالثة</option>
+<option value="4">الرابعة</option>
+</select></div>
+<div class="mfg"><label>GPA</label><input id="sGpa" placeholder="0.00 — 4.00" type="number" step="0.01" min="0" max="4" /></div>
+</div>
+<div class="mfrow">
+<div class="mfg"><label>الإيميل</label><input id="sEmail" type="email" placeholder="student@email.com" /></div>
+<div class="mfg"><label>الحالة</label><select id="sStat">
+<option value="active">نشط</option>
+<option value="inactive">غير نشط</option>
+<option value="graduated">متخرج</option>
+<option value="suspended">موقوف</option>
+</select></div>
+</div>
+<div class="mfrow">
+<div class="mfg full"><label>ملاحظات</label><textarea id="sNotes" placeholder="أي ملاحظات..."></textarea></div>
+</div>
+</div>
+<div class="modal-footer"><button class="btn btn-g" onclick="closeStuModal()">إلغاء</button> <button class="btn btn-p" onclick="saveStu()">💾 حفظ</button></div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<p>
+<script>
+const API = 'bot.php';
+let adminPass = '';
+let adminLoggedIn = false;
+// Student session stored in localStorage for persistence
+let currentStudent = JSON.parse(localStorage.getItem('batu_student') || 'null');
+
+marked.setOptions({breaks:true, gfm:true});
+
+// ── Utils ─────────────────────────────────────────
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function toast(msg, c='#10b981'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=c;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600);
+}
+async function api(params){
+  const fd=new FormData();
+  for(const[k,v] of Object.entries(params)) fd.append(k,String(v));
+  const r=await fetch(API,{method:'POST',body:fd});
+  return r.json();
+}
+
+// ── Restore student session on load ───────────────
+function restoreStudent(){
+  if(!currentStudent) return;
+  document.getElementById('regBanner').style.display='none';
+  document.getElementById('userCard').style.display='flex';
+  document.getElementById('ucName').textContent = currentStudent.name;
+  document.getElementById('topUserBadge').style.display='flex';
+  document.getElementById('topUserName').textContent = currentStudent.name;
+}
+
+function logout(){
+  currentStudent = null;
+  localStorage.removeItem('batu_student');
+  document.getElementById('userCard').style.display='none';
+  document.getElementById('regBanner').style.display='flex';
+  document.getElementById('topUserBadge').style.display='none';
+  toast('تم تسجيل الخروج','#64748b');
+}
+
+function dismissReg(){
+  document.getElementById('regBanner').style.display='none';
+  localStorage.setItem('batu_reg_dismissed','1');
+}
+
+// ── Student Registration ───────────────────────────
+function openRegModal(){
+  document.getElementById('regModal').classList.add('show');
+  document.getElementById('regErr').style.display='none';
+  setTimeout(()=>document.getElementById('regName').focus(),100);
+}
+function closeRegModal(){ document.getElementById('regModal').classList.remove('show'); }
+
+async function doRegister(){
+  const name = document.getElementById('regName').value.trim();
+  const nid  = document.getElementById('regNid').value.trim();
+  const errEl= document.getElementById('regErr');
+
+  if(!name){ errEl.textContent='يرجى إدخال الاسم'; errEl.style.display='block'; return; }
+  if(!/^\d{14}$/.test(nid)){ errEl.textContent='الرقم القومي يجب أن يكون 14 رقماً'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+
+  try{
+    const d = await api({action:'self_register', name, national_id: nid});
+    if(d.ok){
+      currentStudent = {name: d.name, nid};
+      localStorage.setItem('batu_student', JSON.stringify(currentStudent));
+
+      closeRegModal();
+      document.getElementById('regBanner').style.display='none';
+      document.getElementById('userCard').style.display='flex';
+      document.getElementById('ucName').textContent = d.name;
+      document.getElementById('topUserBadge').style.display='flex';
+      document.getElementById('topUserName').textContent = d.name;
+
+      const msg = d.action==='register'
+        ? `أهلاً ${d.name}! 🎉 تم تسجيلك بنجاح. كيف يمكنني مساعدتك؟`
+        : `أهلاً ${d.name}! 👋 سعيد بعودتك. كيف يمكنني مساعدتك؟`;
+      addMsg('b', msg);
+      toast(d.action==='register' ? '✅ تم التسجيل بنجاح!' : '👋 أهلاً بعودتك!');
+    } else {
+      errEl.textContent = d.error || 'حدث خطأ، حاول مرة أخرى';
+      errEl.style.display='block';
+    }
+  } catch(e){
+    errEl.textContent='⚠️ لا يمكن الاتصال بالسيرفر';
+    errEl.style.display='block';
+  }
+}
+
+// ── Admin Login ────────────────────────────────────
+function showAdminLogin(){
+  document.getElementById('adminLoginModal').classList.add('show');
+  document.getElementById('adminErr').style.display='none';
+  setTimeout(()=>document.getElementById('adminPw').focus(),100);
+}
+function closeAdminLogin(){ document.getElementById('adminLoginModal').classList.remove('show'); }
+
+async function doAdminLogin(){
+  const p = document.getElementById('adminPw').value.trim(); if(!p) return;
+  try{
+    const d = await api({action:'auth', pass:p});
+    if(d.ok){
+      adminPass = p; adminLoggedIn = true;
+      closeAdminLogin();
+      document.getElementById('adminBtn').style.opacity='1';
+      document.getElementById('viewTabs').style.display='flex';
+      loadStu(); loadStuStats(); loadKB();
+      toast('✅ مرحباً بك في لوحة التحكم');
+    } else {
+      document.getElementById('adminErr').style.display='block';
+      document.getElementById('adminPw').value='';
+    }
+  } catch{
+    document.getElementById('adminErr').textContent='⚠️ لا يمكن الاتصال';
+    document.getElementById('adminErr').style.display='block';
+  }
+}
+
+// ── Pages ──────────────────────────────────────────
+function goPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.vtab').forEach((b,i)=>{
+    b.classList.toggle('on',['chat','students','knowledge','security'][i]===name);
+  });
+  document.getElementById('page-'+name).classList.add('on');
+  if(name==='students'){ loadStu(); loadStuStats(); }
+  if(name==='knowledge') loadKB();
+}
+
+// ── Chat ───────────────────────────────────────────
+function addMsg(role, html, fromCache=false){
+  const wrap=document.getElementById('msgs');
+  const d=document.createElement('div'); d.className=`msg ${role}`;
+  let h=html;
+  if(role==='b'){
+    h=marked.parse(html);
+    if(fromCache) h=`<div class="cache-badge">⚡ من الكاش</div>`+h;
+    const tmp=document.createElement('div'); tmp.innerHTML=h;
+    tmp.querySelectorAll('a').forEach(a=>{a.target='_blank';a.rel='noopener noreferrer'});
+    h=tmp.innerHTML;
+  }
+  d.innerHTML=`<div class="av">${role==='b'?'🎓':'👤'}</div><div class="bbl">${role==='u'?esc(html):h}</div>`;
+  wrap.appendChild(d); wrap.scrollTop=wrap.scrollHeight;
+}
+function showTyping(){
+  const w=document.getElementById('msgs'),d=document.createElement('div');
+  d.className='msg b';d.id='typ';
+  d.innerHTML='<div class="av">🎓</div><div class="bbl"><div class="typing"><span></span><span></span><span></span></div></div>';
+  w.appendChild(d);w.scrollTop=w.scrollHeight;
+}
+function hideTyping(){ const t=document.getElementById('typ');if(t)t.remove(); }
+
+function q(txt){ document.getElementById('inp').value=txt; send(); }
+
+async function send(){
+  const inp=document.getElementById('inp'); const msg=inp.value.trim(); if(!msg) return;
+  inp.value=''; document.getElementById('sendBtn').disabled=true;
+  addMsg('u',msg); showTyping();
+  try{
+    const d=await api({action:'chat',message:msg});
+    hideTyping(); addMsg('b',d.reply||'حدث خطأ.',d.src==='cache');
+  }catch{ hideTyping(); addMsg('b','⚠️ تعذّر الاتصال. تأكد أن bot.php يعمل على السيرفر.'); }
+  document.getElementById('sendBtn').disabled=false; inp.focus();
+}
+
+// ── History Drawer ─────────────────────────────────
+async function openDrawer(){
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  const body=document.getElementById('drawerBody');
+  body.innerHTML='<p style="text-align:center;color:var(--gray);padding:30px 0">⏳ جاري التحميل...</p>';
+  try{
+    const d=await api({action:'get_chat_history',pass:''});
+    if(!d.ok||!d.history?.length){ body.innerHTML='<p style="text-align:center;color:var(--gray);padding:30px 0">لا يوجد سجل بعد.</p>'; return; }
+    body.innerHTML=d.history.map(h=>`
+      <div class="hist-msg" onclick="replayQ('${esc(h.content).replace(/'/g,"\\'")}')">
+        <div class="hr ${h.role==='user'?'u':'b'}">${h.role==='user'?'👤 أنت':'🎓 BATU AI'}</div>
+        <div class="hc">${esc(h.content.replace(/<[^>]+>/g,''))}</div>
+        <div class="ht">🕐 ${esc(h.created_at||'')}</div>
+      </div>`).join('');
+  }catch{ body.innerHTML='<p style="text-align:center;color:var(--gray);padding:30px 0">⚠️ تعذّر التحميل.</p>'; }
+}
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+function replayQ(t){ closeDrawer(); document.getElementById('inp').value=t; document.getElementById('inp').focus(); }
+
+// ── Knowledge Base ──────────────────────────────────
+const CATL={general:'عام',faculty:'كلية',program:'برنامج',admission:'قبول',fees:'رسوم',contact:'تواصل',activity:'نشاط',staff:'كادر',news:'أخبار'};
+const CATC={general:'bg',faculty:'gg',program:'yg',admission:'pg',fees:'rg',contact:'gg',activity:'yg',staff:'bg',news:'pg'};
+
+async function loadKB(){
+  try{
+    const d=await api({action:'kb_list',pass:adminPass});
+    const tb=document.getElementById('kbBody');
+    if(!d.ok||!d.entries?.length){ tb.innerHTML='<tr class="empty-r"><td colspan="6">لا توجد مدخلات مضافة بعد.</td></tr>'; return; }
+    tb.innerHTML=d.entries.map((e,i)=>`<tr>
+      <td>${i+1}</td>
+      <td><span class="bdg ${CATC[e.category]||'bg'}">${CATL[e.category]||e.category}</span></td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.keywords)}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.content)}</td>
+      <td style="font-size:10px;white-space:nowrap">${esc(e.added_at||'')}</td>
+      <td><button class="btn btn-d bsm" onclick="kbDel('${e.id}')">🗑️</button></td>
+    </tr>`).join('');
+  }catch{}
+}
+async function kbAdd(){
+  const cat=document.getElementById('kbCat').value;
+  const kw=document.getElementById('kbKw').value.trim();
+  const ct=document.getElementById('kbContent').value.trim();
+  if(!kw||!ct){ toast('⚠️ يرجى ملء الكلمات والمحتوى','#ef4444'); return; }
+  try{
+    const d=await api({action:'kb_add',pass:adminPass,category:cat,keywords:kw,content:ct});
+    if(d.ok){ document.getElementById('kbKw').value=''; document.getElementById('kbContent').value=''; await loadKB(); toast('✅ تمت الإضافة!'); }
+    else toast('❌ '+(d.error||'فشل'),'#ef4444');
+  }catch{ toast('⚠️ خطأ في الاتصال','#ef4444'); }
+}
+async function kbDel(id){
+  if(!confirm('حذف هذه المعلومة؟')) return;
+  try{ const d=await api({action:'kb_delete',pass:adminPass,id}); if(d.ok){ await loadKB(); toast('🗑️ تم الحذف','#64748b'); } }catch{}
+}
+
+// ── Students (Admin) ────────────────────────────────
+const STL={active:'نشط',inactive:'غير نشط',graduated:'متخرج',suspended:'موقوف'};
+const STC={active:'sb-act',inactive:'sb-ina',graduated:'sb-grd',suspended:'sb-sus'};
+
+async function loadStuStats(){
+  try{
+    const d=await api({action:'student_stats',pass:adminPass}); if(!d.ok) return;
+    document.getElementById('dTotal').textContent  = d.total||0;
+    document.getElementById('dActive').textContent = d.active||0;
+    document.getElementById('dGPA').textContent    = d.avg_gpa||'—';
+    document.getElementById('dFacs').textContent   = (d.by_faculty||[]).length;
+  }catch{}
+}
+async function loadStu(){
+  const s=document.getElementById('stuSearch')?.value||'';
+  const f=document.getElementById('stuFac')?.value||'';
+  const y=document.getElementById('stuYear')?.value||'';
+  try{
+    const d=await api({action:'student_list',pass:adminPass,search:s,faculty:f,year:y});
+    const tb=document.getElementById('stuBody');
+    if(!d.ok||!d.students?.length){ tb.innerHTML='<tr class="empty-r"><td colspan="8">لا يوجد طلاب مطابقون.</td></tr>'; return; }
+    tb.innerHTML=d.students.map((s,i)=>`<tr>
+      <td>${i+1}</td><td><b>${esc(s.name)}</b></td>
+      <td style="font-size:10px">${esc(s.national_id)}</td>
+      <td style="font-size:10.5px">${esc(s.faculty||'—')}</td>
+      <td>${esc(s.year||'—')}</td><td>${esc(s.gpa||'—')}</td>
+      <td><span class="bdg ${STC[s.status]||'sb-act'}">${STL[s.status]||s.status}</span></td>
+      <td style="display:flex;gap:3px">
+        <button class="btn btn-s bsm" onclick="openEditStu(${JSON.stringify(s).replace(/"/g,'&quot;')})">✏️</button>
+        <button class="btn btn-d bsm" onclick="delStu('${s.id}')">🗑️</button>
+      </td>
+    </tr>`).join('');
+  }catch{}
+}
+function openAddStu(){
+  document.getElementById('stuModalTitle').textContent='➕ إضافة طالب جديد';
+  ['stuId','sName','sNid','sPhone','sEmail','sGpa','sNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('sStat').value='active';
+  document.getElementById('stuModal').classList.add('show');
+}
+function openEditStu(s){
+  document.getElementById('stuModalTitle').textContent='✏️ تعديل بيانات طالب';
+  document.getElementById('stuId').value  = s.id||'';
+  document.getElementById('sName').value  = s.name||'';
+  document.getElementById('sNid').value   = s.national_id||'';
+  document.getElementById('sPhone').value = s.phone||'';
+  document.getElementById('sEmail').value = s.email||'';
+  document.getElementById('sGpa').value   = s.gpa||'';
+  document.getElementById('sNotes').value = s.notes||'';
+  document.getElementById('sFac').value   = s.faculty||'كلية الصناعة والطاقة';
+  document.getElementById('sProg').value  = s.program||'';
+  document.getElementById('sYear').value  = s.year||'1';
+  document.getElementById('sStat').value  = s.status||'active';
+  document.getElementById('stuModal').classList.add('show');
+}
+function closeStuModal(){ document.getElementById('stuModal').classList.remove('show'); }
+async function saveStu(){
+  const id=document.getElementById('stuId').value;
+  const p={pass:adminPass,action:id?'student_update':'student_add',id,
+    name:document.getElementById('sName').value,
+    national_id:document.getElementById('sNid').value,
+    faculty:document.getElementById('sFac').value,
+    program:document.getElementById('sProg').value,
+    year:document.getElementById('sYear').value,
+    status:document.getElementById('sStat').value,
+    phone:document.getElementById('sPhone').value,
+    email:document.getElementById('sEmail').value,
+    gpa:document.getElementById('sGpa').value,
+    notes:document.getElementById('sNotes').value};
+  try{
+    const d=await api(p);
+    if(d.ok){ closeStuModal(); await loadStu(); await loadStuStats(); toast(id?'✅ تم التعديل!':'✅ تمت الإضافة!'); }
+    else toast('❌ '+(d.error||'فشل'),'#ef4444');
+  }catch{ toast('⚠️ خطأ','#ef4444'); }
+}
+async function delStu(id){
+  if(!confirm('حذف هذا الطالب نهائياً؟')) return;
+  try{
+    const d=await api({action:'student_delete',pass:adminPass,id});
+    if(d.ok){ await loadStu(); await loadStuStats(); toast('🗑️ تم الحذف','#64748b'); }
+  }catch{}
+}
+
+// ── Security ────────────────────────────────────────
+async function changePass(){
+  const p1=document.getElementById('np1').value.trim();
+  const p2=document.getElementById('np2').value.trim();
+  if(p1.length<6){ toast('⚠️ 6 أحرف على الأقل','#ef4444'); return; }
+  if(p1!==p2){ toast('⚠️ كلمتا المرور غير متطابقتين','#ef4444'); return; }
+  try{
+    const d=await api({action:'changepass',pass:adminPass,newpass:p1});
+    if(d.ok){ adminPass=p1; document.getElementById('np1').value=''; document.getElementById('np2').value=''; toast('🔑 تم التغيير!'); }
+  }catch{}
+}
+
+// ── Init ────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  // Restore student if previously registered
+  restoreStudent();
+
+  // Hide reg banner if dismissed before
+  if(localStorage.getItem('batu_reg_dismissed')==='1' && !currentStudent){
+    document.getElementById('regBanner').style.display='none';
+  }
+
+  // Welcome message
+  setTimeout(()=>{
+    const name = currentStudent?.name || null;
+    const greeting = name
+      ? `### 👋 أهلاً ${name}!\nكيف يمكنني مساعدتك اليوم؟ 😊`
+      : `### 🎓 أهلاً بك في BATU AI BOOT!\n\nأنا المساعد الذكي لجامعة برج العرب التكنولوجية.\nيمكنني مساعدتك في:\n* 🏛️ **الكليات والبرامج الدراسية**\n* 💰 **المصروفات** ونظام الدراسة\n* 📋 **القبول والتسجيل**\n* 📞 **التواصل** مع الجامعة\n\nاكتب أي سؤال أو اضغط على الأزرار السريعة! 💬`;
+    addMsg('b', greeting);
+  }, 300);
+});
+</script>
+</p>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# Protect sensitive files from direct access
+<FilesMatch "\.(env|db|json|log)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Allow only index.html and bot.php
+<Files "bot.php">
+    Order Allow,Deny
+    Allow from all
+</Files>
+
+Options -Indexes
